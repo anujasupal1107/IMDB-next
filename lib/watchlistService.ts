@@ -1,32 +1,13 @@
-import {
-  addToWatchlist,
-  removeFromWatchlist,
-  getState,
-} from "@/lib/watchlistStore";
+import useWatchlistStore from "@/lib/watchlistStore";
 
-import { addToQueue } from "@/lib/watchlistQueue";
-
-export function isInWatchlist(id: string) {
-  return getState().some((m) => m.id === id);
+export function addToWatchlist(movie: any) {
+  useWatchlistStore.getState().addItem(movie);
 }
 
-export async function toggleWatchlist(item: { id: string; title: string }) {
-  const exists = isInWatchlist(item.id);
+export function removeFromWatchlist(id: string) {
+  useWatchlistStore.getState().removeItem(id);
+}
 
-  if (exists) {
-    removeFromWatchlist(item.id);
-
-    await addToQueue({
-      type: "REMOVE",
-      id: item.id,
-    });
-  } else {
-    addToWatchlist(item);
-
-    await addToQueue({
-      type: "ADD",
-      id: item.id,
-      title: item.title,
-    });
-  }
+export function getState() {
+  return useWatchlistStore.getState().items;
 }

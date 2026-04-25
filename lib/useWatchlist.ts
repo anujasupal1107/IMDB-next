@@ -1,22 +1,10 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { subscribe, getState } from "@/lib/watchlistStore";
+import { useEffect } from "react";
+import useWatchlistStore from "@/lib/watchlistStore";
 
 export function useWatchlist() {
-  const [items, setItems] = useState(getState());
+  const items = useWatchlistStore((state) => state.items);
 
-  useEffect(() => {
-    const unsubscribe = subscribe(setItems);
-    return unsubscribe;
-  }, []);
+  useEffect(() => {}, []);
 
-  const isInWatchlist = (id: string) => {
-    return items.some((i) => i.id === id);
-  };
-
-  return {
-    items,
-    isInWatchlist,
-  };
+  return { items };
 }
