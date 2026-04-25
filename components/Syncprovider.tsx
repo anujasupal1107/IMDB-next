@@ -1,38 +1,37 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import useWatchlistStore from "@/lib/watchlistStore";
 import { processQueue } from "@/lib/syncEngine";
-import { setState } from "@/lib/watchlistStore";
 
 export default function SyncProvider() {
   const syncing = useRef(false);
 
-  const run = async () => {
-    if (syncing.current) return;
+  useEffect(() => {
+    const sync = async () => {
+      if (syncing.current) return;
 
-    try {
       syncing.current = true;
 
-      // 1. Sync offline queue → DB
-      await processQueue();
+      try {
+        await processQueue();
 
-      // ❌ REMOVE THIS (causes conflicts)
-      // const items = await getWatchlist();
-      // setState(items);
+        // optional: access store state safely
+        const store = useWatchlistStore.getState();
 
-      // 2. Let store remain source of truth
-      // store is already updated inside toggleWatchlist
-    } finally {
-      syncing.current = false;
-    }
-  };
+        console.log("Sync complete:", store.items);
+      } catch (err) {
+        console.error("Sync failed:", err);
+      } finally {
+        syncing.current = false;
+      }
+    };
 
-  useEffect(() => {
-    run();
+    sync();
 
-    window.addEventListener("online", run);
+    const interval = setInterval(sync, 10000);
 
-    return () => window.removeEventListener("online", run);
+    return () => clearInterval(interval);
   }, []);
 
   return null;

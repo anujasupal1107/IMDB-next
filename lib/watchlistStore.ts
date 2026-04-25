@@ -1,43 +1,33 @@
-let watchlist: any[] = [];
-let listeners: Function[] = [];
+import { create } from "zustand";
 
-// ✅ CORE
-export function getState() {
-  return watchlist;
-}
+export type WatchItem = {
+  id: string;
+  title: string;
+};
 
-export function addToWatchlist(movie: any) {
-  if (!watchlist.find((m) => m.id === movie.id)) {
-    watchlist.push(movie);
-    emit();
-  }
-}
+type WatchlistState = {
+  items: WatchItem[];
+  addItem: (item: WatchItem) => void;
+  removeItem: (id: string) => void;
+  clear: () => void;
+};
 
-export function removeFromWatchlist(id: string) {
-  watchlist = watchlist.filter((m) => m.id !== id);
-  emit();
-}
+const useWatchlistStore = create<WatchlistState>((set) => ({
+  items: [],
 
-function emit() {
-  listeners.forEach((l) => l(watchlist));
-}
+  addItem: (item) =>
+    set((state) => ({
+      items: state.items.find((i) => i.id === item.id)
+        ? state.items
+        : [...state.items, item],
+    })),
 
-export function subscribe(cb: Function) {
-  listeners.push(cb);
-  cb(watchlist);
+  removeItem: (id) =>
+    set((state) => ({
+      items: state.items.filter((i) => i.id !== id),
+    })),
 
-  return () => {
-    listeners = listeners.filter((l) => l !== cb);
-  };
-}
+  clear: () => set({ items: [] }),
+}));
 
-/* --------------------------------------------------
-   ✅ ADD COMPATIBILITY LAYER (THIS FIXES YOUR ERRORS)
----------------------------------------------------*/
-
-// OLD NAME SUPPORT (what your app is using)
-export const getWatchlist = getState;
-
-export const addItem = addToWatchlist;
-
-export const removeItem = removeFromWatchlist;
+export default useWatchlistStore;
